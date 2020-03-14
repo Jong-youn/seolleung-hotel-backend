@@ -1,22 +1,22 @@
 from django.db import models
 
 class User(models.Model):
-    grade                = models.ForeignKey('Grade', on_delete = models.CASCADE)
-    account_number       = models.CharField(max_length = 20, unique = True)
-    account              = models.CharField(max_length = 30, unique = True)
-    password             = models.CharField(max_length = 200)
-    name_kr              = models.CharField(max_length = 50)
-    name_eng             = models.CharField(max_length = 50)
-    birth                = models.DateField()
-    gender               = models.ForeignKey('Gender', on_delete = models.CASCADE )
-    mobile               = models.CharField(max_length = 15)
-    telephone            = models.CharField(max_length = 15)
-    zip_code             = models.CharField(max_length = 10)
-    address              = models.CharField(max_length = 50)
+    grade                = models.ForeignKey('Grade', on_delete = models.CASCADE, blank = True, null = True)
+    account_number       = models.CharField(max_length = 20, unique = True,  blank = True, null = True)
+    account              = models.CharField(max_length = 30, unique = True,  blank = True, null = True)
+    password             = models.CharField(max_length = 200, blank = True, null = True)
+    name_kr              = models.CharField(max_length = 50, blank = True, null = True)
+    name_eng             = models.CharField(max_length = 50, blank = True, null = True)
+    birth                = models.DateField(blank = True, null = True)
+    gender               = models.ForeignKey('Gender', on_delete = models.CASCADE , blank = True, null = True)
+    mobile               = models.CharField(max_length = 15, blank = True, null = True)
+    telephone            = models.CharField(max_length = 15, blank = True, null = True)
+    zip_code             = models.CharField(max_length = 10, blank = True, null = True)
+    address              = models.CharField(max_length = 50, blank = True, null = True)
     detailed_address     = models.CharField(max_length = 50, blank = True, null = True)
     email                = models.EmailField(max_length = 50, unique = True)
     job                  = models.ForeignKey('Job',  on_delete = models.CASCADE, blank = True, null = True)
-    marketing_agree      = models.BooleanField(default = False)
+    marketing_agree      = models.BooleanField(default = False, blank = True, null = True)
     created_at           = models.DateTimeField(auto_now_add = True)
     updated_at           = models.DateTimeField(auto_now = True)
 
@@ -41,5 +41,3 @@ class Job(models.Model) :
 
     class Meta:
         db_table = 'jobs'
-
-
