@@ -59,7 +59,6 @@ class RoomDatePrice(models.Model):
 
 class RoomType(models.Model):
     iconic_info      = models.ForeignKey('RoomIconicInfo', on_delete = models.SET_NULL, null = True)
-    image            = models.ForeignKey('RoomImage', on_delete = models.SET_NULL, null = True)
     room_information = models.ForeignKey('RoomInformation', on_delete = models.SET_NULL, null = True)
     name             = models.CharField(max_length = 50, null = True)
 
