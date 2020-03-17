@@ -2,6 +2,7 @@ import json
 import re
 import bcrypt
 import jwt
+from datetime import datetime, date
 
 from .models              import User,  Grade, Gender, Job
 from django.test          import TestCase
@@ -277,7 +278,6 @@ class LoginTest(TestCase) :
         response = client.post('/users/login', json.dumps(user), content_type = 'application/json')
         self.assertEqual(response.status_code, 200)
 
-
     def test_LoginView_post_wrong_pw(self) : 
         user = {
             'account'   : 'ljy6816',
@@ -310,3 +310,72 @@ class LoginTest(TestCase) :
         response = client.post('/users/login', json.dumps(user), content_type = 'application/json')
         self.assertEqual(response.status_code, 400)
 
+
+
+class FindAccountTest(TestCase) :
+    def setUp(self) :
+        User.objects.create(
+            account_number  = '10147747',
+            birth           = '1997-02-14',
+            account         = 'jayjay14',
+            name_kr         = 'jay',
+            mobile          = '01012345678'
+        )
+
+    def tearDown(self) : 
+        User.objects.all().delete()
+
+    def test_AccountView_post_success(self) : 
+        user = {
+            'account_number' : '10147747',
+            'birth'          : '1997-02-14',
+            'name_kr'        : 'jay',
+            'mobile'         : '01012345678'
+        }
+        client = Client()
+        response = client.post('/users/account', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(),
+        {
+            'account':'jayjay14'
+        })
+
+    def test_AccountView_post_wrong_accountnumber(self) : 
+        user = {
+            'account_number' : '10147749',
+            'birth'          : '1997-02-14',
+            'name_kr'        : 'jay',
+            'mobile'         : '01012345678'
+        }
+        client = Client()
+        response = client.post('/users/account', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(),
+        {
+            'message':'INVALID_ACCOUNT_NUMBER'
+        })
+
+    def test_AccountView_post_wrong_info(self) : 
+        user = {
+            'account_number' : '10147747',
+            'birth'          : '1997-02-14',
+            'name_kr'        : 'jade',
+            'mobile'         : '01012345678'
+        }
+        client = Client()
+        response = client.post('/users/account', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(),
+        {
+            'message' : 'WRONG_INFORMATION'
+        })
+
+    def test_AccountView_post_keyerror(self) : 
+        user = {
+            'account_number' : '10147747',
+            'birth'          : '1997-02-14',
+            'mobile'         : '01012345678'
+        }
+        client = Client()
+        response = client.post('/users/account', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 400)
