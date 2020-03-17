@@ -118,7 +118,7 @@ class UserInfoChangeView(View) :
         ).save()
         return HttpResponse(status=200)  
 
-class AccountView(View) :
+class AccountFindView(View) :
     def exist_user(self, data, user) :
         validate_condition = [
                 lambda i, c: i['mobile'] == c.mobile,
@@ -139,6 +139,34 @@ class AccountView(View) :
 
                 if self.exist_user(data, user) :
                     return JsonResponse({'account' : user.account}, status = 200)
+                else :
+                    return JsonResponse({'message' : 'WRONG_INFORMATION'}, status = 401)
+            else : 
+                return JsonResponse({'message' : 'INVALID_ACCOUNT_NUMBER'}, status = 401)
+
+        except KeyError :
+            return HttpResponse(status=400)
+        
+class PasswordFindView(View) :
+    def exist_user(self, data, user) :
+        user_verification = [
+                lambda i, c: i['account'] == c.account,
+                lambda i, c: i['name_kr'] == c.name_kr
+                ]
+        is_valid_user = True
+        for verification in user_verification:
+            if not verification(data, user):
+                return False
+        return is_valid_user
+
+    def post(self, request) : 
+        try : 
+            data = json.loads(request.body)
+            if User.objects.filter(account_number = data['account_number']).exists() :
+                user = User.objects.get(account_number = data['account_number'])
+
+                if self.exist_user(data, user) :
+                    return HttpResponse(status = 200)
                 else :
                     return JsonResponse({'message' : 'WRONG_INFORMATION'}, status = 401)
             else : 

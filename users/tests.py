@@ -333,7 +333,7 @@ class FindAccountTest(TestCase) :
             'mobile'         : '01012345678'
         }
         client = Client()
-        response = client.post('/users/account', json.dumps(user), content_type = 'application/json')
+        response = client.post('/users/account-find', json.dumps(user), content_type = 'application/json')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
         {
@@ -348,7 +348,7 @@ class FindAccountTest(TestCase) :
             'mobile'         : '01012345678'
         }
         client = Client()
-        response = client.post('/users/account', json.dumps(user), content_type = 'application/json')
+        response = client.post('/users/account-find', json.dumps(user), content_type = 'application/json')
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json(),
         {
@@ -363,7 +363,7 @@ class FindAccountTest(TestCase) :
             'mobile'         : '01012345678'
         }
         client = Client()
-        response = client.post('/users/account', json.dumps(user), content_type = 'application/json')
+        response = client.post('/users/account-find', json.dumps(user), content_type = 'application/json')
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json(),
         {
@@ -377,5 +377,63 @@ class FindAccountTest(TestCase) :
             'mobile'         : '01012345678'
         }
         client = Client()
-        response = client.post('/users/account', json.dumps(user), content_type = 'application/json')
+        response = client.post('/users/account-find', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 400)
+
+class PWViewTest(TestCase) :
+    def setUp(self) :
+        User.objects.create(
+            account_number  = '10147747',
+            account         = 'jayjay14',
+            name_kr         = 'jay'
+        )
+
+    def tearDown(self) : 
+        User.objects.all().delete()
+
+    def test_PWView_post_success(self) : 
+        user = {
+            'account_number' : '10147747',
+            'account'        : 'jayjay14',
+            'name_kr'        : 'jay'
+        }
+        client = Client()
+        response = client.post('/users/password-find', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 200)
+
+    def test_PWView_post_wrong_accountnumber(self) : 
+        user = {
+            'account_number' : '10147749',
+            'account'        : 'jayjay14',
+            'name_kr'        : 'jay'
+        }
+        client = Client()
+        response = client.post('/users/password-find', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(),
+        {
+            'message':'INVALID_ACCOUNT_NUMBER'
+        })
+
+    def test_PWView_post_wrong_info(self) : 
+        user = {
+            'account_number' : '10147747',
+            'account'        : 'jayjay14',
+            'name_kr'        : 'jade'
+        }
+        client = Client()
+        response = client.post('/users/password-find', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json(),
+        {
+            'message' : 'WRONG_INFORMATION'
+        })
+
+    def test_PWView_post_keyerror(self) : 
+        user = {
+            'account_number' : '10147747',
+            'account'        : 'jayjay14',
+        }
+        client = Client()
+        response = client.post('/users/password-find', json.dumps(user), content_type = 'application/json')
         self.assertEqual(response.status_code, 400)
