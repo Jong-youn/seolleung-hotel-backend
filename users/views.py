@@ -90,15 +90,15 @@ class UserInfoChangeView(View) :
             'name_kr'           : user.name_kr,
             'name_eng'          : user.name_eng,
             'birth'             : user.birth,
-            'gender'            :user.gender,
-            'mobile'            :user.mobile,
-            'telephone'         :user.telephone,
-            'zip_code'          :user.zip_code,
-            'address'           :user.address,
-            'detailed_address'  :user.detailed_address,
-            'email'             :user.email,
-            'job'               :user.job,
-            'marketing_agree'   :user.marketing_agree,
+            'gender'            : user.gender,
+            'mobile'            : user.mobile,
+            'telephone'         : user.telephone,
+            'zip_code'          : user.zip_code,
+            'address'           : user.address,
+            'detailed_address'  : user.detailed_address,
+            'email'             : user.email,
+            'job'               : user.job,
+            'marketing_agree'   : user.marketing_agree,
         }
         return JsonResponse({"data" : user_information}, status = 200)
 
@@ -117,3 +117,32 @@ class UserInfoChangeView(View) :
             marketing_agree     = data['marketing_agree']
         ).save()
         return HttpResponse(status=200)  
+
+class AccountView(View) :
+    def exist_user(self, data, user) :
+        validate_condition = [
+                lambda i, c: i['mobile'] == c.mobile,
+                lambda i, c: i['name_kr'] == c.name_kr,
+                lambda i, c: i['birth'] == str(c.birth)
+                ]
+        is_valid = True
+        for validator in validate_condition:
+            if not validator(data, user):
+                return False
+        return is_valid
+
+    def post(self, request) : 
+        try : 
+            data = json.loads(request.body)
+            if User.objects.filter(account_number = data['account_number']).exists() :
+                user = User.objects.get(account_number = data['account_number'])
+
+                if self.exist_user(data, user) :
+                    return JsonResponse({'account' : user.account}, status = 200)
+                else :
+                    return JsonResponse({'message' : 'WRONG_INFORMATION'}, status = 401)
+            else : 
+                return JsonResponse({'message' : 'INVALID_ACCOUNT_NUMBER'}, status = 401)
+
+        except KeyError :
+            return HttpResponse(status=400)
