@@ -4,12 +4,13 @@ import bcrypt
 import re
 import random
 import string
+import requests
 
 from django.views                      import View
 from django.http                       import HttpResponse, JsonResponse
 
 from .models                           import Grade, Job, User, Gender
-from my_settings                       import SECRET_KEY, ALGORITHM
+from my_settings                       import SECRET_KEY, ALGORITHM, SMS_AUTH
 from .utils                            import user_authentication
 
 ID_VALID = r'^(?=.*[a-z])[a-z0-9]{6,20}$'
@@ -18,6 +19,7 @@ class IdVerificationView(View) :
     def post(self, request) :
         try :
             user_id  = json.loads(request.body)
+            print('user', user_id['account'])           
             if User.objects.filter(account = user_id['account']).exists():
                 return JsonResponse({'message' : 'id_repetition'}, status = 400)
 
@@ -174,3 +176,28 @@ class PasswordFindView(View) :
 
         except KeyError :
             return HttpResponse(status=400)
+
+class SmsAuthenticationView(View) :
+    def post(self, request) :
+        try : 
+            data = json.loads(request.body)  
+            headers = {
+                'Content-Type'          : 'application/json; charset=utf-8',
+                'x-ncp-auth-key'        : SMS_AUTH['auth_key'],
+                'x-ncp-service-secret'  : SMS_AUTH['service_secret']
+            }      
+            auth_num = random.randrange(100000, 1000000)
+            body = {
+                "type"          : "SMS",
+                "contentType"   : "COMM",
+                "countryCode"   : "82",
+                "from"          : SMS_AUTH['from'],
+                "to"            : [data['mobile']],
+                "content"       : f"[LAHAN] 인증번호를 입력해 주세요 [{auth_num}]"
+            }
+            URL = SMS_AUTH['url']
+            requests.post(URL, headers = headers, json = body)
+            return JsonResponse({'AUTHENTICATION' : auth_num}, status = 200)
+        
+        except KeyError :
+            return HttpResponse(status = 400)

@@ -1,5 +1,12 @@
 from django.urls        import path
-from .views             import IdVerificationView, SignUpView, LoginView, UserInfoChangeView, AccountFindView, PasswordFindView
+from .views             import (
+    IdVerificationView, 
+    SignUpView, 
+    LoginView, 
+    UserInfoChangeView, 
+    AccountFindView, 
+    PasswordFindView, 
+    SmsAuthenticationView )
 
 urlpatterns = [
     path('/id-verification', IdVerificationView.as_view()),
@@ -7,5 +14,6 @@ urlpatterns = [
     path('/login', LoginView.as_view()),
     path('/mypage/userinfo', UserInfoChangeView.as_view()),
     path('/account-find', AccountFindView.as_view()),
-    path('/password-find', PasswordFindView.as_view())   
+    path('/password-find', PasswordFindView.as_view()),
+    path('/sms-auth', SmsAuthenticationView.as_view())
 ]

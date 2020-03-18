@@ -437,3 +437,22 @@ class PWViewTest(TestCase) :
         client = Client()
         response = client.post('/users/password-find', json.dumps(user), content_type = 'application/json')
         self.assertEqual(response.status_code, 400)
+
+
+class SmsAuthenticationTest(TestCase) :
+
+    def test_SmsAuthenticationView_post_success(self) : 
+        user = {
+            'mobile'         : '01077205553'
+        }
+        client = Client()
+        response = client.post('/users/sms-auth', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 200)
+
+    def test_SmsAuthenticationView_post_keyerror(self) : 
+        user = {
+            'account_number' : '10147747',
+        }
+        client = Client()
+        response = client.post('/users/sms-auth', json.dumps(user), content_type = 'application/json')
+        self.assertEqual(response.status_code, 400)
