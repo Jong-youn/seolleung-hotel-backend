@@ -10,6 +10,7 @@ from django.views                      import View
 from django.http                       import HttpResponse, JsonResponse
 
 from .models                           import Grade, Job, User, Gender
+from room.models                       import Branch
 from my_settings                       import SECRET_KEY, ALGORITHM, SMS_AUTH
 from .utils                            import user_authentication
 
@@ -19,7 +20,6 @@ class IdVerificationView(View) :
     def post(self, request) :
         try :
             user_id  = json.loads(request.body)
-            print('user', user_id['account'])           
             if User.objects.filter(account = user_id['account']).exists():
                 return JsonResponse({'message' : 'id_repetition'}, status = 400)
 
@@ -72,8 +72,8 @@ class LoginView(View) :
             if User.objects.filter(account = login_data['account']).exists() :
                 saved_data = User.objects.get(account = login_data['account'])
 
-                if bcrypt.checkpw(login_data['password'].encode('utf-8'), saved_data.password):
-                    token = jwt.encode({'email' : saved_data.email}, SECRET_KEY['secret'], algorithm=ALGORITHM).decode()
+                if bcrypt.checkpw(login_data['password'].encode('utf-8'), saved_data.password.encode('utf-8')):
+                    token = jwt.encode({'account' : saved_data.account}, SECRET_KEY['secret'], algorithm=ALGORITHM).decode()
                     return JsonResponse({'Authorization' : token}, status=200)  
                 return JsonResponse({'message' : "Wrong password"}, status=401)
             else :
@@ -84,41 +84,49 @@ class LoginView(View) :
 class UserInfoChangeView(View) :
     @user_authentication
     def get(self, request) :
-        data = json.loads(request.body)
-        user = User.objects.get(account = data['account'])
-        user_information = {       
-            'account_number'    : user.account_number,
-            'grade'             : user.grade,
-            'name_kr'           : user.name_kr,
-            'name_eng'          : user.name_eng,
-            'birth'             : user.birth,
-            'gender'            : user.gender,
-            'mobile'            : user.mobile,
-            'telephone'         : user.telephone,
-            'zip_code'          : user.zip_code,
-            'address'           : user.address,
-            'detailed_address'  : user.detailed_address,
-            'email'             : user.email,
-            'job'               : user.job,
-            'marketing_agree'   : user.marketing_agree,
-        }
-        return JsonResponse({"data" : user_information}, status = 200)
+        try : 
+            user = User.objects.get(account = request.user.account)
+            user_information = {       
+                'account_number'    : user.account_number,
+                'grade'             : Grade.objects.get(id = user.grade.id).name,
+                'name_kr'           : user.name_kr,
+                'name_eng'          : user.name_eng,
+                'birth'             : user.birth,
+                'gender'            : user.gender.id,
+                'mobile'            : user.mobile,
+                'telephone'         : user.telephone,
+                'zip_code'          : user.zip_code,
+                'address'           : user.address,
+                'detailed_address'  : user.detailed_address,
+                'email'             : user.email,
+                'job'               : user.job.id,
+                'marketing_agree'   : user.marketing_agree,
+            }
+            return JsonResponse(user_information, status = 200)
+        except user.DoesNotExist :
+            return JsonResponse({"message":"INVALID_USER"}, status=400)
 
     @user_authentication
     def post(self, request) :
         data = json.loads(request.body)
-        user = User.objects.get(account = data['account'])
-        User(
-            name_eng            = data['name_eng'],
-            telephone           = data['telephone'],
-            zip_code            = data['zip_code'],
-            address             = data['address'],
-            detailed_address    = data['detailed_address'],
-            email               = data['email'],
-            job                 = Job.objects.get(id = data['job']),
-            marketing_agree     = data['marketing_agree']
-        ).save()
-        return HttpResponse(status=200)  
+        user = User.objects.get(account = request.user.account)
+        try : 
+            user.name_eng            = data['name_eng']
+            user.telephone           = data['telephone']
+            user.zip_code            = data['zip_code']
+            user.address             = data['address']
+            user.detailed_address    = data['detailed_address']
+            user.email               = data['email']
+            user.job                 = Job.objects.get(id = data['job'])
+            user.marketing_agree     = data['marketing_agree']
+            user.save()
+            return HttpResponse(status=200)  
+        
+        except user.DoesNotExist :
+            return JsonResponse({"message":"INVALID_USER"}, status=400)
+        
+        except KeyError :
+            return HttpResponse(status=400)
 
 class AccountFindView(View) :
     def exist_user(self, data, user) :
@@ -201,3 +209,25 @@ class SmsAuthenticationView(View) :
         
         except KeyError :
             return HttpResponse(status = 400)
+
+class UserPasswordChangeView(View) :
+    @user_authentication
+    def post(self, request) :
+        data = json.loads(request.body)
+        user = User.objects.get(account = data['account'])
+        try : 
+            if bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')) :
+                User(
+                    password = bcrypt.hashpw(data['new_password'].encode('utf-8'), bcrypt.gensalt())
+                ).save()
+                return HttpResponse(status=200)  
+            else :
+                return JsonResponse({'AUTHENTICATION' : 'WRONG PASSWORD'}, status = 400)
+            
+        except KeyError :
+                return HttpResponse(status = 400)
+
+class JobView(View) : 
+    def get(self, request) :
+        job = Job.objects.all().values()
+        return JsonResponse({'jobDate' : list(job)}, status = 200)
