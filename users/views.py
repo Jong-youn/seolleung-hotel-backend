@@ -43,7 +43,7 @@ class SignUpView(View) :
                 grade            = Grade.objects.get(id = 1),
                 account_number   = account_number,
                 account          = user_data['account'],
-                password         = hashed_password,
+                password         = hashed_password.decode(),
                 name_kr          = user_data['name_kr'],
                 name_eng         = user_data['name_eng'],
                 birth            = user_data['birth'],
@@ -72,7 +72,7 @@ class LoginView(View) :
             if User.objects.filter(account = login_data['account']).exists() :
                 saved_data = User.objects.get(account = login_data['account'])
 
-                if bcrypt.checkpw(login_data['password'].encode('utf-8'), saved_data.password.encode('utf-8')):
+                if bcrypt.checkpw(login_data['password'].encode('utf-8'), saved_data.password):
                     token = jwt.encode({'email' : saved_data.email}, SECRET_KEY['secret'], algorithm=ALGORITHM).decode()
                     return JsonResponse({'Authorization' : token}, status=200)  
                 return JsonResponse({'message' : "Wrong password"}, status=401)

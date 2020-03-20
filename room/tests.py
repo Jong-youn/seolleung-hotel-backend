@@ -9,7 +9,6 @@ from .models import (
     Facility,
     Language,
     Room,
-    Branch,
     Bathroom,
     Bedding,
     Comfort,
@@ -21,14 +20,14 @@ from .models import (
     View,
     Bed,
     RoomBed,
-    RoomImage
+    RoomImage,
+    Date,
+    RoomDatePrice
 )
 
 from django.test import TestCase, Client
 
 class DetailViewTest(TestCase):
-    client = Client()
-
     def setUp(self):
         Branch.objects.create(
             name = '경주',
@@ -165,9 +164,8 @@ class DetailViewTest(TestCase):
         RoomImage.objects.all().delete()
 
     def test_detail_view_get_success(self):
-        client =Client()
+        client = Client()
         response = client.get('/room/detail/1')
-        print(response.json())
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(),
                          {
@@ -202,3 +200,57 @@ class DetailViewTest(TestCase):
                                      'language': ['영어']}}
                          }
         )
+
+class RoomListViewTest(TestCase):
+    def setUp(self):
+
+        Room.objects.create(
+            id = 1,
+            name = 'HILL SIDE DELUXE DOUBLE',
+            price = 500000,
+            free_parking = 1,
+            free_wifi = 1,
+            non_smoking = 1,
+            room_square_meter = 37,
+            room_square_meter_py = 11.2,
+            tv = 1,
+            refrigerator = 1
+        )
+
+        RoomImage.objects.create(
+            image = 'img',
+            room = Room.objects.get(id = 1)
+        )
+
+        Date.objects.create(
+            date = '2020-04-01',
+            is_weekend = 0,
+            is_holiday = 0,
+            custom_price = 1)
+
+        RoomDatePrice.objects.create(
+            room = Room.objects.get(id = 1),
+            date = Date.objects.get(id = 1)
+        )
+
+    def tearDown(self):
+        Room.objects.all().delete()
+        RoomImage.objects.all().delete()
+        Date.objects.all().delete()
+        RoomDatePrice.objects.all().delete()
+
+    def test_room_list_view_get_success(self):
+        client = Client()
+        response = client.get('/room?CheckIn=2020-04-01&CheckOut=2020-04-06')
+        print(response.json())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(),
+                         {'room_list': [
+                             {'id': 1, 
+                              'image': ['img'], 
+                              'name': 'HILL SIDE DELUXE DOUBLE', 
+                              'price': '500000.00000000', 
+                              'stay_nights': 0}
+                        ]
+                     }
+                )
