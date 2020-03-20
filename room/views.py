@@ -1,6 +1,6 @@
 import json
 
-from .models import Room, RoomDatePrice
+from .models import Room, RoomDatePrice, Branch
 
 from django.core.exceptions import ValidationError
 from django.db.models       import Avg, DecimalField, ExpressionWrapper, F
@@ -117,3 +117,8 @@ class RoomListView(View):
             return JsonResponse({'room_list': room_list}, status = 200)
         except ValidationError:
             return JsonResponse({'Message':'Invalid Date'}, status = 400)
+    
+class BranchListView(View) : 
+    def get(self, request) :
+        branch = Branch.objects.all().values('id', 'name')
+        return JsonResponse({'Branch' : list(branch)}, status = 200)

@@ -16,8 +16,8 @@ def user_authentication(func):
 
         try:
             data = jwt.decode(encode_token, SECRET_KEY['secret'], algorithm='HS256')
-            account = User.objects.get(email=data['email'])
-            request.account = account
+            user = User.objects.get(account = data['account'])
+            request.user = user
 
         except jwt.DecodeError:
             return JsonResponse({"error_code":"INVALID_TOKEN"}, status = 401)
