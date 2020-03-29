@@ -214,7 +214,7 @@ class UserPasswordChangeView(View) :
     @user_authentication
     def post(self, request) :
         data = json.loads(request.body)
-        user = User.objects.get(account = data['account'])
+        user = User.objects.get(account = request.user.account)
         try : 
             if bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')) :
                 User(
