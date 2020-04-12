@@ -15,8 +15,13 @@ def login_required(func):
         if token:
             try:
                 decode       = jwt.decode(token, secret, algorithms = ['HS256'])
+<<<<<<< HEAD
                 user_info    = decode.get('account', None)
                 user         = User.objects.get(account = user_info)
+=======
+                user_account = decode.get('account', None)
+                user         = User.objects.get(account = user_account)
+>>>>>>> 7b07e53... point view
                 request.user = user
 
             except jwt.DecodeError:

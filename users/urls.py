@@ -8,8 +8,10 @@ from .views             import (
     PasswordFindView, 
     SmsAuthenticationView,
     UserPasswordChangeView, 
-    JobView
+    JobView,
+    KakaoLoginView
     )
+
 
 urlpatterns = [
     path('/id-verification', IdVerificationView.as_view()),
@@ -21,4 +23,5 @@ urlpatterns = [
     path('/sms-auth', SmsAuthenticationView.as_view()),
     path('/userpw', UserPasswordChangeView.as_view()),
     path('/job', JobView.as_view()),
+    path('/kakao', KakaoLoginView.as_view())
 ]
