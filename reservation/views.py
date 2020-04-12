@@ -25,11 +25,11 @@ class ReservationView(View):
                 price            = data['price'],
                 reservation_code = uuid.uuid4()
             ).save()
-            saved_one = float(data['price']) * float(request.user.grade.point_rate)
-            reserve_id = Reservation.objects.latest('id')
-            user_point = User.objects.prefetch_related('point_set').get(id = request.user.id).point_set.all()
-            total_saved_point = user_point.aggregate(Sum('saved_point'))['saved_point__sum']
-            total_used_point = user_point.aggregate(Sum('used_point'))['used_point__sum']
+            saved_one           = float(data['price']) * float(request.user.grade.point_rate)
+            reserve_id          = Reservation.objects.latest('id')
+            user_point          = User.objects.prefetch_related('point_set').get(id = request.user.id).point_set.all()
+            total_saved_point   = user_point.aggregate(Sum('saved_point'))['saved_point__sum']
+            total_used_point    = user_point.aggregate(Sum('used_point'))['used_point__sum']
             
             if User.objects.prefetch_related('point_set').get(id = request.user.id).point_set.all() :
                 Point(
