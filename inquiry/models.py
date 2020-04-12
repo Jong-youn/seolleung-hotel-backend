@@ -1,5 +1,5 @@
-from django.db import models
-from room.models     import Branch
+from django.db      import models
+from room.models    import Branch
 
 
 class Inquiry(models.Model) :  

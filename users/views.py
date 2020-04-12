@@ -14,20 +14,25 @@ from room.models                       import Branch
 from my_settings                       import SECRET_KEY, ALGORITHM, SMS_AUTH
 from .utils                            import user_authentication
 
+
 ID_VALID = r'^(?=.*[a-z])[a-z0-9]{6,20}$'
 
 class IdVerificationView(View) :
     def post(self, request) :
         try :
             user_id  = json.loads(request.body)
+            
             if User.objects.filter(account = user_id['account']).exists():
                 return JsonResponse({'message' : 'id_repetition'}, status = 400)
 
             if not re.match(ID_VALID, user_id['account']):
                 return JsonResponse({'message' : 'INVALID_ID'}, status = 400)
+            
             return HttpResponse(status=200)  
+        
         except KeyError :
             return HttpResponse(status=400)
+
 
 class SignUpView(View) : 
     ID_OFFSET = 10147747
@@ -38,12 +43,16 @@ class SignUpView(View) :
 
             if User.objects.filter(account = user_data['account']).exists() :
                 return JsonResponse({'message' : 'id_duplication'}, status = 400)
-            account_number = self.ID_OFFSET + User.objects.count()
+            
+            if User.objects.filter(email = user_data['email']).exists() :
+                return JsonResponse({'message' : 'email_duplication'}, status = 400)
+            
+            account_number = self.ID_OFFSET + User.objects.latest('id').id
             User(
                 grade            = Grade.objects.get(id = 1),
                 account_number   = account_number,
                 account          = user_data['account'],
-                password         = hashed_password.decode(),
+                password         = hashed_password,
                 name_kr          = user_data['name_kr'],
                 name_eng         = user_data['name_eng'],
                 birth            = user_data['birth'],
@@ -57,6 +66,7 @@ class SignUpView(View) :
                 job              = Job.objects.get(id = user_data['job']),
                 marketing_agree  = user_data['marketing_agree']
             ).save()
+            
             return JsonResponse({
                 'name_kr'        : user_data['name_kr'],
                 'account'        : user_data['account'],
@@ -64,6 +74,7 @@ class SignUpView(View) :
 
         except KeyError :
             return HttpResponse(status=400)
+
 
 class LoginView(View) :
     def post(self, request):
@@ -74,12 +85,17 @@ class LoginView(View) :
 
                 if bcrypt.checkpw(login_data['password'].encode('utf-8'), saved_data.password.encode('utf-8')):
                     token = jwt.encode({'account' : saved_data.account}, SECRET_KEY['secret'], algorithm=ALGORITHM).decode()
+                    
                     return JsonResponse({'Authorization' : token}, status=200)  
+                
                 return JsonResponse({'message' : "Wrong password"}, status=401)
+            
             else :
                 return JsonResponse({'message' : 'UNEXISTING_USER'}, status = 401)
+            
         except KeyError :
             return HttpResponse(status=400)
+
 
 class UserInfoChangeView(View) :
     @user_authentication
@@ -101,8 +117,10 @@ class UserInfoChangeView(View) :
                 'email'             : user.email,
                 'job'               : user.job.id,
                 'marketing_agree'   : user.marketing_agree,
+                'point'             : User.objects.prefetch_related('point_set').get(id = request.user.id).point_set.order_by('-created_at')[0].total_point
             }
             return JsonResponse(user_information, status = 200)
+        
         except user.DoesNotExist :
             return JsonResponse({"message":"INVALID_USER"}, status=400)
 
@@ -111,6 +129,14 @@ class UserInfoChangeView(View) :
         data = json.loads(request.body)
         user = User.objects.get(account = request.user.account)
         try : 
+            if User.objects.filter(email = data['email']).exists() :
+                
+                if user.email == data['email'] :
+                    pass
+                
+                else :
+                    return JsonResponse({'message' : 'email_duplication'}, status = 400)
+                
             user.name_eng            = data['name_eng']
             user.telephone           = data['telephone']
             user.zip_code            = data['zip_code']
@@ -128,17 +154,19 @@ class UserInfoChangeView(View) :
         except KeyError :
             return HttpResponse(status=400)
 
+
 class AccountFindView(View) :
     def exist_user(self, data, user) :
         validate_condition = [
-                lambda i, c: i['mobile'] == c.mobile,
-                lambda i, c: i['name_kr'] == c.name_kr,
-                lambda i, c: i['birth'] == str(c.birth)
+                lambda i, c: i['mobile']    == c.mobile,
+                lambda i, c: i['name_kr']   == c.name_kr,
+                lambda i, c: i['birth']     == str(c.birth)
                 ]
         is_valid = True
         for validator in validate_condition:
             if not validator(data, user):
                 return False
+            
         return is_valid
 
     def post(self, request) : 
@@ -149,13 +177,16 @@ class AccountFindView(View) :
 
                 if self.exist_user(data, user) :
                     return JsonResponse({'account' : user.account}, status = 200)
+                
                 else :
                     return JsonResponse({'message' : 'WRONG_INFORMATION'}, status = 401)
+                
             else : 
                 return JsonResponse({'message' : 'INVALID_ACCOUNT_NUMBER'}, status = 401)
 
         except KeyError :
             return HttpResponse(status=400)
+        
         
 class PasswordFindView(View) :
     def exist_user(self, data, user) :
@@ -177,13 +208,16 @@ class PasswordFindView(View) :
 
                 if self.exist_user(data, user) :
                     return HttpResponse(status = 200)
+                
                 else :
                     return JsonResponse({'message' : 'WRONG_INFORMATION'}, status = 401)
+                
             else : 
                 return JsonResponse({'message' : 'INVALID_ACCOUNT_NUMBER'}, status = 401)
 
         except KeyError :
             return HttpResponse(status=400)
+
 
 class SmsAuthenticationView(View) :
     def post(self, request) :
@@ -217,17 +251,65 @@ class UserPasswordChangeView(View) :
         user = User.objects.get(account = request.user.account)
         try : 
             if bcrypt.checkpw(data['password'].encode('utf-8'), user.password.encode('utf-8')) :
-                User(
-                    password = bcrypt.hashpw(data['new_password'].encode('utf-8'), bcrypt.gensalt())
-                ).save()
+                user.password = bcrypt.hashpw(data['new_password'].encode('utf-8'), bcrypt.gensalt())
+                user.save()
                 return HttpResponse(status=200)  
+            
             else :
                 return JsonResponse({'AUTHENTICATION' : 'WRONG PASSWORD'}, status = 400)
             
         except KeyError :
                 return HttpResponse(status = 400)
 
+
 class JobView(View) : 
     def get(self, request) :
         job = Job.objects.all().values()
+<<<<<<< HEAD
         return JsonResponse({'jobDate' : list(job)}, status = 200)
+=======
+        
+        return JsonResponse({'jobDate' : list(job)}, status = 200)
+    
+
+class KakaoLoginView(View) :
+    ID_OFFSET = 10147747
+    def post(self, request):
+        access_token = request.headers['Authorization']
+        URL = 'https://kapi.kakao.com/v2/user/me'
+        
+        kakao_request = requests.get(
+            URL,
+            headers = {
+                "Host"          : "kapi.kakao.com",
+                "Authorization" : f"Bearer {access_token}",
+                "Content-type"  : "application/x-www-from-urlencoded;charset=utf-8"
+            }
+        ,timeout = 2)
+        
+        kakao_id = kakao_request.json().get('id')
+        kakao_info = kakao_request.json()
+        account_number = self.ID_OFFSET + User.objects.latest('id').id
+        
+        try:
+            if User.objects.filter(account = kakao_id).exists():
+                user = User.objects.get(account = kakao_id)
+                token = jwt.encode({"account":user.account}, SECRET_KEY['secret'], algorithm = ALGORITHM)
+                
+                return JsonResponse({"Authorization":token.decode('utf-8')}, status = 200)
+
+            else:
+                User(
+                    account_number   = account_number,
+                    account          = kakao_id,
+                    email            = kakao_info['kakao_account']['email'],
+                    grade            = Grade.objects.get(id = 1)
+                ).save()
+                user = User.objects.get(account = kakao_id)
+                token = jwt.encode({"account" : user.account}, SECRET_KEY['secret'], algorithm = ALGORITHM)
+
+                return JsonResponse({"Authorization":token.decode()}, status = 200)
+
+        except KeyError:
+            return JsonResponse({"message":"INVALID_KEYS"}, status = 400)
+>>>>>>> 7b07e53... point view

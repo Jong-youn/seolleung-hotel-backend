@@ -20,7 +20,6 @@ class InquiryView(View) :
     def post(self, request) :
         try : 
             data = json.loads(request.body)
-            print(data)
             Inquiry(
                 user            = request.user,
                 branch          = Branch.objects.get(id = data['branch']),
@@ -35,9 +34,9 @@ class InquiryView(View) :
 
     @user_authentication
     def get(self, request) :
-        qanda = Inquiry.objects.filter(user_id = request.user.id).values().order_by('-created_at')
+        inquiry = Inquiry.objects.filter(user_id = request.user.id).values().order_by('-created_at')
     
-        return JsonResponse({'data' : list(qanda)}, status = 200)
+        return JsonResponse({'data' : list(inquiry)}, status = 200)
 
     @user_authentication
     def delete(self, request) :
@@ -59,16 +58,21 @@ class InquiryUpdateView(View) :
                     title           = data['title'],
                     content         = data['content']
                 )
-                return HttpResponse(status=200)
+                return JsonResponse({'message' : '은미님 수고했어요^_^'}, status=200)
             
             else :
                 return JsonResponse({'message' : 'WRONG INQUIRY ID'}, status = 400)
         
         except KeyError :
-            print('keyerror')
             return HttpResponse(status=400) 
             
 class InquiryTypeView(View) : 
     def get(self, request) :
-        inquiry = InquiryType.objects.all().values()
+        inquiry = [
+            {
+                'id'    : inquiry.id,
+                'name'  : inquiry.inquiry_type
+            }
+            for inquiry in InquiryType.objects.all()
+        ]
         return JsonResponse({'Inquiry_type' : list(inquiry)}, status = 200)

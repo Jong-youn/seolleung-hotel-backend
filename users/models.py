@@ -1,4 +1,5 @@
-from django.db      import models
+from django.db           import models
+from reservation.models  import Reservation
 
 class User(models.Model):
     grade                = models.ForeignKey('Grade', on_delete = models.CASCADE, blank = True, null = True)
@@ -8,7 +9,7 @@ class User(models.Model):
     name_kr              = models.CharField(max_length = 50, blank = True, null = True)
     name_eng             = models.CharField(max_length = 50, blank = True, null = True)
     birth                = models.DateField(blank = True, null = True)
-    gender               = models.ForeignKey('Gender', on_delete = models.CASCADE , blank = True, null = True)
+    gender               = models.ForeignKey('Gender', on_delete = models.CASCADE, blank = True, null = True)
     mobile               = models.CharField(max_length = 15, blank = True, null = True)
     telephone            = models.CharField(max_length = 15, blank = True, null = True)
     zip_code             = models.CharField(max_length = 10, blank = True, null = True)
@@ -23,11 +24,13 @@ class User(models.Model):
     class Meta :
         db_table = 'users'
 
+
 class Gender(models.Model):
     name         = models.CharField(max_length = 5)
 
     class Meta :
         db_table = 'genders'
+
 
 class Grade(models.Model):
     name            = models.CharField(max_length = 20)
@@ -35,6 +38,7 @@ class Grade(models.Model):
 
     class Meta :
         db_table = 'grades'
+
 
 class Job(models.Model) :
     name         = models.CharField(max_length = 30)
