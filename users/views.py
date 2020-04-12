@@ -265,9 +265,6 @@ class UserPasswordChangeView(View) :
 class JobView(View) : 
     def get(self, request) :
         job = Job.objects.all().values()
-<<<<<<< HEAD
-        return JsonResponse({'jobDate' : list(job)}, status = 200)
-=======
         
         return JsonResponse({'jobDate' : list(job)}, status = 200)
     
@@ -312,4 +309,3 @@ class KakaoLoginView(View) :
 
         except KeyError:
             return JsonResponse({"message":"INVALID_KEYS"}, status = 400)
->>>>>>> 7b07e53... point view
