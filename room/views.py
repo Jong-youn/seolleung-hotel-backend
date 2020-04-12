@@ -120,5 +120,6 @@ class RoomListView(View):
     
 class BranchListView(View) : 
     def get(self, request) :
-        branch = Branch.objects.all().values('id', 'name')
+        branch = Branch.objects.values('id', 'name')
+        
         return JsonResponse({'Branch' : list(branch)}, status = 200)
