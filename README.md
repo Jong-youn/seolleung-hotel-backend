@@ -2,7 +2,6 @@
 지역 랜드마크호텔 네트워크 [라한호텔 웹사이트](https://www.lahanhotels.com/) 클론 프로젝트
 - 기간 : 20.03.9 - 20.03.20
 - 구성 : 프론트엔드 3명, 백엔드 2명 (총 5명)
-- [백엔드 깃헙주소](https://github.com/k904808/seolleung-hotel-backend)
 
 # Demo
 [![](https://images.velog.io/images/k904808/post/7bd9cf34-6a47-4125-9ced-f473efc5a6d1/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202020-04-20%20%E1%84%8B%E1%85%A9%E1%84%8C%E1%85%A5%E1%86%AB%2012.59.34.png)](https://youtu.be/HULscwbnHyw)
