@@ -10,6 +10,7 @@ from django.views       import View
 from django.http        import HttpResponse, JsonResponse
 from django.db.models   import Sum
 
+
 class ReservationView(View):
     @login_required
     def post(self, request):
@@ -40,10 +41,10 @@ class ReservationView(View):
                 ).save()
             else :
                 Point(
-                    user        = request.user,
-                    reservation = reserve_id, 
-                    saved_point = saved_one,
-                    total_point = saved_one
+                    user            = request.user,
+                    reservation     = reserve_id, 
+                    saved_point     = saved_one,
+                    total_point     = saved_one
                 ).save()
                 
             return JsonResponse({'Message':'Reservation Succeed'}, status = 200)

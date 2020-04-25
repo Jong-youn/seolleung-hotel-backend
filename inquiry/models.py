@@ -13,6 +13,7 @@ class Inquiry(models.Model) :
     class Meta : 
         db_table = 'inquires'
 
+
 class InquiryType(models.Model) :
     inquiry_type       = models.CharField(max_length = 20)
 

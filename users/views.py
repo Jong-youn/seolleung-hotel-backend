@@ -193,7 +193,7 @@ class PasswordFindView(View) :
         user_verification = [
                 lambda i, c: i['account'] == c.account,
                 lambda i, c: i['name_kr'] == c.name_kr
-                ]
+                            ]
         is_valid_user = True
         for verification in user_verification:
             if not verification(data, user):
@@ -244,6 +244,7 @@ class SmsAuthenticationView(View) :
         except KeyError :
             return HttpResponse(status = 400)
 
+
 class UserPasswordChangeView(View) :
     @user_authentication
     def post(self, request) :
@@ -272,8 +273,8 @@ class JobView(View) :
 class KakaoLoginView(View) :
     ID_OFFSET = 10147747
     def post(self, request):
-        access_token = request.headers['Authorization']
-        URL = 'https://kapi.kakao.com/v2/user/me'
+        access_token    = request.headers['Authorization']
+        URL             = 'https://kapi.kakao.com/v2/user/me'
         
         kakao_request = requests.get(
             URL,
@@ -282,16 +283,16 @@ class KakaoLoginView(View) :
                 "Authorization" : f"Bearer {access_token}",
                 "Content-type"  : "application/x-www-from-urlencoded;charset=utf-8"
             }
-        ,timeout = 2)
+            ,timeout = 2)
         
-        kakao_id = kakao_request.json().get('id')
-        kakao_info = kakao_request.json()
-        account_number = self.ID_OFFSET + User.objects.latest('id').id
+        kakao_id        = kakao_request.json().get('id')
+        kakao_info      = kakao_request.json()
+        account_number  = self.ID_OFFSET + User.objects.latest('id').id
         
         try:
             if User.objects.filter(account = kakao_id).exists():
-                user = User.objects.get(account = kakao_id)
-                token = jwt.encode({"account":user.account}, SECRET_KEY['secret'], algorithm = ALGORITHM)
+                user    = User.objects.get(account = kakao_id)
+                token   = jwt.encode({"account":user.account}, SECRET_KEY['secret'], algorithm = ALGORITHM)
                 
                 return JsonResponse({"Authorization":token.decode('utf-8')}, status = 200)
 
@@ -302,8 +303,8 @@ class KakaoLoginView(View) :
                     email            = kakao_info['kakao_account']['email'],
                     grade            = Grade.objects.get(id = 1)
                 ).save()
-                user = User.objects.get(account = kakao_id)
-                token = jwt.encode({"account" : user.account}, SECRET_KEY['secret'], algorithm = ALGORITHM)
+                user    = User.objects.get(account = kakao_id)
+                token   = jwt.encode({"account" : user.account}, SECRET_KEY['secret'], algorithm = ALGORITHM)
 
                 return JsonResponse({"Authorization":token.decode()}, status = 200)
 

@@ -1,6 +1,7 @@
 from django.db           import models
 from reservation.models  import Reservation
 
+
 class User(models.Model):
     grade                = models.ForeignKey('Grade', on_delete = models.CASCADE, blank = True, null = True)
     account_number       = models.CharField(max_length = 20, unique = True,  blank = True, null = True)
