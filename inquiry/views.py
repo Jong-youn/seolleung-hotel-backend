@@ -1,19 +1,12 @@
 import json
-import jwt
-import bcrypt
-import re
-import random
-import string
-import requests
 
 from django.views                      import View
 from django.http                       import HttpResponse, JsonResponse
 
 from .models                           import InquiryType, Inquiry
-from users.models                      import Grade, Job, User, Gender
 from room.models                       import Branch
-from my_settings                       import SECRET_KEY, ALGORITHM, SMS_AUTH
 from users.utils                       import user_authentication
+
 
 class InquiryView(View) :
     @user_authentication
@@ -45,6 +38,7 @@ class InquiryView(View) :
             
         return HttpResponse(status = 200)
     
+    
 class InquiryUpdateView(View) :
     @user_authentication
     def post(self, request, inquiry_id) :
@@ -58,13 +52,14 @@ class InquiryUpdateView(View) :
                     title           = data['title'],
                     content         = data['content']
                 )
-                return JsonResponse({'message' : '은미님 수고했어요^_^'}, status=200)
+                return HttpResponse(status = 200)
             
             else :
                 return JsonResponse({'message' : 'WRONG INQUIRY ID'}, status = 400)
         
         except KeyError :
             return HttpResponse(status=400) 
+            
             
 class InquiryTypeView(View) : 
     def get(self, request) :
