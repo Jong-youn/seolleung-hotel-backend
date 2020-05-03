@@ -27,27 +27,20 @@ class ReservationView(View):
                 price            = data['price'],
                 reservation_code = uuid.uuid4()
             ).save()
+            
             saved_one           = float(data['price']) * float(request.user.grade.point_rate)
             reserve_id          = Reservation.objects.latest('id')
             user_point          = User.objects.prefetch_related('point_set').get(id = request.user.id).point_set.all()
             total_saved_point   = user_point.aggregate(Sum('saved_point'))['saved_point__sum']
             total_used_point    = user_point.aggregate(Sum('used_point'))['used_point__sum']
             
-            if User.objects.prefetch_related('point_set').get(id = request.user.id).point_set.all() :
-                Point(
-                    user            = request.user,
-                    reservation     = reserve_id, 
-                    saved_point     = saved_one,
-                    total_point     = saved_one + total_saved_point - total_used_point
-                ).save()
-            else :
-                Point(
-                    user            = request.user,
-                    reservation     = reserve_id, 
-                    saved_point     = saved_one,
-                    total_point     = saved_one
-                ).save()
-                
+            Point(
+                user            = request.user,
+                reservation     = reserve_id, 
+                saved_point     = saved_one,
+                total_point     = saved_one + total_saved_point - total_used_point
+            ).save()
+
             return JsonResponse({'Message':'Reservation Succeed'}, status = 200)
         except KeyError:
             return JsonResponse({'Message':'Invalid Keys'}, status = 400)
