@@ -11,6 +11,7 @@ from django.http                       import HttpResponse, JsonResponse
 
 from .models                           import Grade, Job, User, Gender
 from room.models                       import Branch
+from reservation.models                import Point
 from my_settings                       import SECRET_KEY, ALGORITHM, SMS_AUTH
 from .utils                            import user_authentication
 
@@ -48,7 +49,7 @@ class SignUpView(View) :
                 return JsonResponse({'message' : 'email_duplication'}, status = 400)
             
             account_number = self.ID_OFFSET + User.objects.latest('id').id
-            User(
+            new_user = User(
                 grade            = Grade.objects.get(id = 1),
                 account_number   = account_number,
                 account          = user_data['account'],
@@ -65,6 +66,13 @@ class SignUpView(View) :
                 email            = user_data['email'],
                 job              = Job.objects.get(id = user_data['job']),
                 marketing_agree  = user_data['marketing_agree']
+            )
+            
+            new_user.save()
+            
+            Point(
+                user        = User.objects.get(id = new_user.id),
+                total_point = 0
             ).save()
             
             return JsonResponse({
