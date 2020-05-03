@@ -1,5 +1,6 @@
 import json
 import uuid
+import operator
 
 from .models            import Reservation, PointRequest, Point
 from users.models       import User
@@ -67,7 +68,10 @@ class ReservationView(View):
 
 class PointView(View) :
     @login_required
-    def get(self, request):        
+    def get(self, request):     
+        user_point      = Point.objects.all().select_related('reservation').filter(user_id = request.user.id)[1:]
+        result_point    = sorted(user_point, key = operator.attrgetter('created_at'), reverse = True)
+        
         point_data = [
             {   
                 'id'            : point.id,
@@ -77,7 +81,7 @@ class PointView(View) :
                 'used_point'    : point.used_point,
                 'total_point'   : point.total_point
             }
-            for point in Point.objects.all().select_related('reservation').filter(user_id = request.user.id).order_by('-created_at')
+            for point in result_point
         ]
         
         return JsonResponse({'Inquiry_type' : list(point_data)}, status = 200)
